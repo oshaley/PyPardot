@@ -1,7 +1,7 @@
-class Lists(object):
+class Lists():
     """
     A class to query and use Pardot lists.
-    List field reference: http://developer.pardot.com/kb/api-version-3/object-field-references/#list
+    List field reference: http://developer.pardot.com/kb/api-version-3/object-field-references#list
     """
 
     def __init__(self, client):
@@ -10,36 +10,29 @@ class Lists(object):
     def query(self, **kwargs):
         """
         Returns the lists matching the specified criteria parameters.
-        Supported search criteria: http://developer.pardot.com/kb/api-version-3/lists/#supported-search-criteria
+        Supported search parameters: http://developer.pardot.com/kb/api-version-3/querying-lists
         """
-        response = self._get(path='/do/query', params=kwargs)
-
-        # Ensure result['list'] is a list, no matter what.
-        result = response.get('result')
-        if result['total_results'] == 0:
-            result['list'] = []
-        elif result['total_results'] == 1:
-            result['list'] = [result['list']]
-
-        return result
+        result = self._get(path='/do/query', params=kwargs)
+        return result.get('result')
 
     def read(self, id=None):
         """
         Returns the data for the list specified by <id>.<id> is the Pardot ID of the target list.
         """
-        response = self._post(path='/do/read/id/{id}'.format(id=id))
-        return response
+        result = self._post(path='/do/read/id/{id}'.format(id=id))
+        return result
 
-    def _get(self, object_name='list', path=None, params=None):
+    def _get(self, object='list', path=None, params=None):
         """GET requests for the List object."""
         if params is None:
             params = {}
-        response = self.client.get(object_name=object_name, path=path, params=params)
-        return response
+        result = self.client.get(object=object, path=path, params=params)
+        return result
 
-    def _post(self, object_name='list', path=None, params=None):
+    def _post(self, object='list', path=None, params=None):
         """POST requests for the List object."""
         if params is None:
             params = {}
-        response = self.client.post(object_name=object_name, path=path, params=params)
-        return response
+        result = self.client.post(object=object, path=path, params=params)
+        return result
+

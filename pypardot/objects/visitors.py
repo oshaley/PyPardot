@@ -1,7 +1,7 @@
-class Visitors(object):
+class Visitors():
     """
     A class to query and use Pardot visitors.
-    Visitor field reference: http://developer.pardot.com/kb/api-version-3/object-field-references/#visitor
+    Visitor field reference: http://developer.pardot.com/kb/api-version-3/object-field-references#visitor
     """
 
     def __init__(self, client):
@@ -10,18 +10,10 @@ class Visitors(object):
     def query(self, **kwargs):
         """
         Returns the visitors matching the specified criteria parameters.
-        Supported search criteria: http://developer.pardot.com/kb/api-version-3/visitors/#supported-search-criteria
+        Supported search criteria: http://developer.pardot.com/kb/api-version-3/querying-visitors#supported-search-criteria-
         """
-        response = self._get(path='/do/query', params=kwargs)
-
-        # Ensure result['visitor'] is a list, no matter what.
-        result = response.get('result')
-        if result['total_results'] == 0:
-            result['visitor'] = []
-        elif result['total_results'] == 1:
-            result['visitor'] = [result['visitor']]
-
-        return result
+        result = self._get(path='/do/query', params=kwargs)
+        return result.get('result')
 
     def assign(self, id=None, **kwargs):
         """
@@ -29,27 +21,30 @@ class Visitors(object):
         parameters must be provided to identify the target prospect: <prospect_email> or <prospect_id>. Returns an
         updated version of the visitor.
         """
-        response = self._post(path='/do/assign/id/{id}'.format(id=id), params=kwargs)
-        return response
+        kwargs['id'] = id
+        result = self._post(path='/do/assign/id/{id}'.format(id=kwargs.get('id')), params=kwargs)
+        return result
 
     def read(self, id=None, **kwargs):
         """
         Returns the data for the visitor specified by <id>, including associated visitor activities, identified
         company data, and visitor referrers. <id> is the Pardot ID for the target visitor.
         """
-        response = self._post(path='/do/read/id/{id}'.format(id=id), params=kwargs)
-        return response
+        kwargs['id'] = id
+        result = self._post(path='/do/read/id/{id}'.format(id=kwargs.get('id')), params=kwargs)
+        return result
 
-    def _get(self, object_name='visitor', path=None, params=None):
+    def _get(self, object='visitor', path=None, params=None):
         """GET requests for the Visitor object."""
         if params is None:
             params = {}
-        response = self.client.get(object_name=object_name, path=path, params=params)
-        return response
+        result = self.client.get(object=object, path=path, params=params)
+        return result
 
-    def _post(self, object_name='visitor', path=None, params=None):
+    def _post(self, object='visitor', path=None, params=None):
         """POST requests for the Visitor object."""
         if params is None:
             params = {}
-        response = self.client.post(object_name=object_name, path=path, params=params)
-        return response
+        result = self.client.post(object=object, path=path, params=params)
+        return result
+

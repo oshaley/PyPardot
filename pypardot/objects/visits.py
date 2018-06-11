@@ -1,7 +1,7 @@
-class Visits(object):
+class Visits():
     """
     A class to query and use Pardot visits.
-    Visit field reference: http://developer.pardot.com/kb/api-version-3/object-field-references/#visit
+    Visit field reference: http://developer.pardot.com/kb/api-version-3/object-field-references#visit
     """
 
     def __init__(self, client):
@@ -10,16 +10,8 @@ class Visits(object):
     def query_by_ids(self, ids=None, **kwargs):
         """Returns the visits matching the given <ids>. The <ids> should be comma separated integers (no spaces)."""
         kwargs['ids'] = ids.replace(' ', '')
-        response = self._get(path='/do/query', params=kwargs)
-
-        # Ensure result['visit'] is a list, no matter what.
-        result = response.get('result')
-        if result['total_results'] == 0:
-            result['visit'] = []
-        elif result['total_results'] == 1:
-            result['visit'] = [result['visit']]
-
-        return result
+        result = self._get(path='/do/query', params=kwargs)
+        return result.get('result')
 
     def query_by_visitor_ids(self, visitor_ids=None, **kwargs):
         """
@@ -27,16 +19,8 @@ class Visits(object):
         (no spaces).
         """
         kwargs['visitor_ids'] = visitor_ids.replace(' ', '')
-        response = self._get(path='/do/query', params=kwargs)
-
-        # Ensure result['visit'] is a list, no matter what.
-        result = response.get('result')
-        if result['total_results'] == 0:
-            result['visit'] = []
-        elif result['total_results'] == 1:
-            result['visit'] = [result['visit']]
-
-        return result
+        result = self._get(path='/do/query', params=kwargs)
+        return result.get('result')
 
     def query_by_prospect_ids(self, prospect_ids=None, **kwargs):
         """
@@ -44,33 +28,27 @@ class Visits(object):
         (no spaces).
         """
         kwargs['prospect_ids'] = prospect_ids.replace(' ', '')
-        response = self._get(path='/do/query', params=kwargs)
-
-        # Ensure result['visit'] is a list, no matter what.
-        result = response.get('result')
-        if result['total_results'] == 0:
-            result['visit'] = []
-        elif result['total_results'] == 1:
-            result['visit'] = [result['visit']]
-
-        return result
+        result = self._get(path='/do/query', params=kwargs)
+        return result.get('result')
 
     def read(self, id=None, **kwargs):
         """
         Returns the data for the visit specified by <id>. <id> is the Pardot ID of the target visit."""
-        response = self._post(path='/do/read/id/{id}'.format(id=id), params=kwargs)
-        return response
+        kwargs['id'] = id
+        result = self._post(path='/do/read/id/{id}'.format(id=kwargs.get('id')), params=kwargs)
+        return result
 
-    def _get(self, object_name='visit', path=None, params=None):
+    def _get(self, object='visit', path=None, params=None):
         """GET requests for the Visit object."""
         if params is None:
             params = {}
-        response = self.client.get(object_name=object_name, path=path, params=params)
-        return response
+        result = self.client.get(object=object, path=path, params=params)
+        return result
 
-    def _post(self, object_name='visit', path=None, params=None):
+    def _post(self, object='visit', path=None, params=None):
         """POST requests for the Visit object."""
         if params is None:
             params = {}
-        response = self.client.post(object_name=object_name, path=path, params=params)
-        return response
+        result = self.client.post(object=object, path=path, params=params)
+        return result
+

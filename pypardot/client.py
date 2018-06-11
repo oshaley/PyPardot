@@ -1,16 +1,17 @@
 import requests
-from .objects.lists import Lists
-from .objects.emails import Emails
-from .objects.prospects import Prospects
-from .objects.opportunities import Opportunities
-from .objects.accounts import Accounts
-from .objects.users import Users
-from .objects.visits import Visits
-from .objects.visitors import Visitors
-from .objects.visitoractivities import VisitorActivities
-from .objects.campaigns import Campaigns
+from pypardot.objects.lists import Lists
+from pypardot.objects.emails import Emails
+from pypardot.objects.prospects import Prospects
+from pypardot.objects.opportunities import Opportunities
+from pypardot.objects.accounts import Accounts
+from pypardot.objects.users import Users
+from pypardot.objects.visits import Visits
+from pypardot.objects.visitors import Visitors
+from pypardot.objects.visitoractivities import VisitorActivities
+from pypardot.objects.customredirects import CustomRedirects
+from pypardot.objects.emailtemplates import EmailTemplates
 
-from .errors import PardotAPIError
+from pypardot.errors import PardotAPIError
 
 # Issue #1 (http://code.google.com/p/pybing/issues/detail?id=1)
 # Python 2.6 has json built in, 2.5 needs simplejson
@@ -22,7 +23,7 @@ except ImportError:
 BASE_URI = 'https://pi.pardot.com'
 
 
-class PardotAPI(object):
+class PardotAPI():
     def __init__(self, email, password, user_key):
         self.email = email
         self.password = password
@@ -37,9 +38,10 @@ class PardotAPI(object):
         self.visits = Visits(self)
         self.visitors = Visitors(self)
         self.visitoractivities = VisitorActivities(self)
-        self.campaigns = Campaigns(self)
+        self.customredirects = CustomRedirects(self)
+        self.emailtemplates = EmailTemplates(self)
 
-    def post(self, object_name, path=None, params=None, retries=0):
+    def post(self, object, path=None, params=None, retries=0):
         """
         Makes a POST request to the API. Checks for invalid requests that raise PardotAPIErrors. If the API key is
         invalid, one re-authentication request is made, in case the key has simply expired. If no errors are raised,
@@ -49,18 +51,18 @@ class PardotAPI(object):
             params = {}
         params.update({'user_key': self.user_key, 'api_key': self.api_key, 'format': 'json'})
         try:
-            self._check_auth(object_name=object_name)
-            request = requests.post(self._full_path(object_name, path), params=params)
+            self._check_auth(object=object)
+            request = requests.post(self._full_path(object, path), params=params)
             response = self._check_response(request)
             return response
         except PardotAPIError as err:
             if err.message == 'Invalid API key or user key':
-                response = self._handle_expired_api_key(err, retries, 'post', object_name, path, params)
+                response = self._handle_expired_api_key(err, retries, 'post', object, path, params)
                 return response
             else:
                 raise err
 
-    def get(self, object_name, path=None, params=None, retries=0):
+    def get(self, object, path=None, params=None, retries=0):
         """
         Makes a GET request to the API. Checks for invalid requests that raise PardotAPIErrors. If the API key is
         invalid, one re-authentication request is made, in case the key has simply expired. If no errors are raised,
@@ -70,18 +72,18 @@ class PardotAPI(object):
             params = {}
         params.update({'user_key': self.user_key, 'api_key': self.api_key, 'format': 'json'})
         try:
-            self._check_auth(object_name=object_name)
-            request = requests.get(self._full_path(object_name, path), params=params)
+            self._check_auth(object=object)
+            request = requests.get(self._full_path(object, path), params=params)
             response = self._check_response(request)
             return response
         except PardotAPIError as err:
             if err.message == 'Invalid API key or user key':
-                response = self._handle_expired_api_key(err, retries, 'get', object_name, path, params)
+                response = self._handle_expired_api_key(err, retries, 'get', object, path, params)
                 return response
             else:
                 raise err
 
-    def _handle_expired_api_key(self, err, retries, method, object_name, path, params):
+    def _handle_expired_api_key(self, err, retries, method, object, path, params):
         """
         Tries to refresh an expired API key and re-issue the HTTP request. If the refresh has already been attempted,
         an error is raised.
@@ -90,15 +92,15 @@ class PardotAPI(object):
             raise err
         self.api_key = None
         if self.authenticate():
-            response = getattr(self, method)(object_name=object_name, path=path, params=params, retries=1)
+            response = getattr(self, method)(object=object, path=path, params=params, retries=1)
             return response
         else:
             raise err
 
     @staticmethod
-    def _full_path(object_name, path=None, version=3):
+    def _full_path(object, path=None, version=4):
         """Builds the full path for the API request"""
-        full = '{0}/api/{1}/version/{2}'.format(BASE_URI, object_name, version)
+        full = '{0}/api/{1}/version/{2}'.format(BASE_URI, object, version)
         if path:
             return full + '{0}'.format(path)
         return full
@@ -119,8 +121,8 @@ class PardotAPI(object):
         else:
             return response.status_code
 
-    def _check_auth(self, object_name):
-        if object_name == 'login':
+    def _check_auth(self, object):
+        if object == 'login':
             return
         if self.api_key is None:
             self.authenticate()
@@ -138,3 +140,8 @@ class PardotAPI(object):
             return False
         except PardotAPIError:
             return False
+
+
+
+
+
